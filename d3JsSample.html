@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+Created using JS Bin
+http://jsbin.com
+
+Copyright (c) 2016 by CheyPenmetsa (http://jsbin.com/koxosi/9/edit)
+
+Released under the MIT license: http://jsbin.mit-license.org
+-->
+<meta name="robots" content="noindex">
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
+<script src="https://code.jquery.com/jquery.min.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<meta name="description" content="Adding axis">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>JS Bin</title>
+  <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  
+<style id="jsbin-css">
+
+
+</style>
+</head>
+<body>
+  <div class="well">
+    Test
+  </div>
+  <div class="container">
+    <div class="col-md-12">
+      <div id="barChartId">
+        
+      </div>
+    </div>
+  </div>
+<script id="jsbin-javascript">
+var h = 300;
+var w = 550;
+var padding = 40;
+var monthlySales = [
+  {"month":1, sales:40},
+  {"month":2, sales:45},
+  {"month":3, sales:30},
+  {"month":4, sales:60},
+  {"month":5, sales:55},
+  {"month":6, sales:45},
+  {"month":7, sales:65},
+  {"month":8, sales:70},
+  {"month":9, sales:20},
+  {"month":10, sales:90},
+  {"month":11, sales:50},
+  {"month":12, sales:20}
+];
+
+var xScale = d3.scale.linear().
+            domain([
+              d3.min(monthlySales,function(d){return d.month;}) - 1,
+              d3.max(monthlySales,function(d){return d.month;}) + 2
+            ]).range([padding,w - padding]);
+
+var yScale = d3.scale.linear().
+            domain([
+              0,
+              d3.max(monthlySales,function(d){return d.sales;}) +10
+            ]).range([h-padding,10]);
+
+var xAxisGen = d3.svg.axis().scale(xScale).orient('bottom');
+var yAxisGen = d3.svg.axis().scale(yScale).orient('left').ticks(4);
+
+var lineFunc = d3.svg.line()
+  .x(function(d){ return xScale(d.month);})
+  .y(function(d){ return yScale(d.sales);})
+  .interpolate("linear");
+
+var showMinMax = function(ds,col,val,type){
+  var maxVal = d3.max(ds,function(d){return d[col];});
+  var minVal = d3.min(ds,function(d){return d[col];});
+  
+  if(type === 'minmax' && ( val === maxVal || val === minVal)){
+    return val;
+  }else{
+    if(type=== 'all'){
+      return val;
+    }
+  }
+  
+};
+
+var svg = d3.select("#barChartId").append('svg').attr({width:w, height:h});
+
+var yAxis = svg.append('g').call(yAxisGen)
+            .attr("fill","none")
+            .attr("stroke", "black")
+            .attr("shape-rendering", "crispEdges")
+            .attr("transform", "translate(" + padding + ",0)");
+
+var xAxis = svg.append('g').call(xAxisGen)
+            .attr("fill","none")
+            .attr("stroke", "black")
+            .attr("shape-rendering", "crispEdges")
+            .attr("transform", "translate(0," + (h-padding) + ")");
+
+
+var viz = svg.append("path")
+          .attr({
+            d:lineFunc(monthlySales),
+            "stroke":"purple",
+            "stroke-width":2,
+            "fill":"none"
+          });
+
+var labels = svg.selectAll("text")
+             .data(monthlySales)
+             .enter()
+             .append("text")
+             .text(function(d){return d.sales;})
+             .attr({
+               x:function(d){ return xScale(d.month)+10;},
+               y:function(d){ return yScale(d.sales)+10;},
+               "font-family":'sans-serif',
+               'font-size':'15px',
+               'text-anchor':'start',
+               'dy':'.35em'
+             });
+
+var dots = svg.selectAll("circle")
+           .data(monthlySales)
+           .enter()
+           .append("circle")
+           .attr({
+             cx:function(d){ return xScale(d.month);},
+             cy:function(d){ return yScale(d.sales);},
+             r:5
+           });
+
+var calculateTotalSales = function(){
+  var totalSales = 0;
+  _.each(monthlySales, function(montlySale){
+    totalSales += montlySale.sales * 1;
+  });
+  return totalSales;
+};
+
+var t = d3.select("#barChartId").append('table');
+
+t.selectAll('tr')
+  .data([1])
+  .enter()
+  .append('tr')
+  .append('td')
+  .text(function(){ return 'Sales Total : '+ calculateTotalSales();});
+
+</script>
+</body>
+</html>
